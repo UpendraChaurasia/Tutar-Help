@@ -1,0 +1,58 @@
+# Logs
+*.log
+
+# Environment
+.env
+.env.backup
+.env.production
+
+# Cache
+.phpunit.result.cache
+.phpactor.json
+
+# IDEs
+/.fleet
+/.idea
+/.nova
+/.phpunit.cache
+/.vscode
+/.zed
+
+# Auth
+/auth.json
+
+# Dependencies
+/vendor
+/node_modules
+
+# Build files
+/public/build
+/public/hot
+
+# Storage
+/public/storage
+/storage/*.key
+/storage/pail
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Homestead
+Homestead.json
+Homestead.yaml
+
+# Laravel Pint
+.pint.cache
+
+# Composer
+composer.phar
+
+# npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Testing
+coverage/

@@ -1,0 +1,105 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class TeacherProfileUpdateRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return $this->user()->hasRole('Teacher');
+    }
+
+    public function rules(): array
+    {
+        return [
+            'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'gender' => ['nullable', Rule::in(['male', 'female', 'other'])],
+            'date_of_birth' => ['nullable', 'date', 'before:today'],
+            'phone' => ['nullable', 'string', 'max:40'],
+            'country' => ['nullable', 'string', 'max:100'],
+            'state' => ['nullable', 'string', 'max:100'],
+            'city' => ['nullable', 'string', 'max:100'],
+            'timezone' => ['nullable', 'string', 'max:100'],
+            'preferred_language' => ['nullable', 'string', 'max:100'],
+            'short_bio' => ['nullable', 'string', 'max:500'],
+            'about_me' => ['nullable', 'string', 'max:2000'],
+            'headline' => ['nullable', 'string', 'max:255'],
+            'experience_years' => ['nullable', 'integer', 'min:0', 'max:80'],
+            'current_occupation' => ['nullable', 'string', 'max:255'],
+            'current_organization' => ['nullable', 'string', 'max:255'],
+            'teaching_level' => ['nullable', 'string', 'max:255'],
+            'hourly_rate' => ['nullable', 'numeric', 'min:0', 'max:100000'],
+            'introduction_video' => ['nullable', 'mimetypes:video/mp4', 'max:512000'],
+            'subjects' => ['nullable', 'array'],
+            'subjects.*' => ['string', 'max:255'],
+            'languages' => ['nullable', 'array'],
+            'languages.*' => ['string', 'max:255'],
+            'educations' => ['nullable', 'array'],
+            'educations.*.degree' => ['required_with:educations', 'string', 'max:255'],
+            'educations.*.college' => ['required_with:educations', 'string', 'max:255'],
+            'educations.*.university' => ['required_with:educations', 'string', 'max:255'],
+            'educations.*.country' => ['required_with:educations', 'string', 'max:100'],
+            'educations.*.start_year' => ['nullable', 'integer', 'digits:4'],
+            'educations.*.end_year' => ['nullable', 'integer', 'digits:4'],
+            'educations.*.description' => ['nullable', 'string'],
+            'experiences' => ['nullable', 'array'],
+            'experiences.*.company' => ['required_with:experiences', 'string', 'max:255'],
+            'experiences.*.designation' => ['required_with:experiences', 'string', 'max:255'],
+            'experiences.*.industry' => ['nullable', 'string', 'max:255'],
+            'experiences.*.start_date' => ['nullable', 'date'],
+            'experiences.*.end_date' => ['nullable', 'date', 'after_or_equal:experiences.*.start_date'],
+            'experiences.*.currently_working' => ['nullable', 'boolean'],
+            'experiences.*.description' => ['nullable', 'string'],
+            'certificates' => ['nullable', 'array'],
+            'certificates.*.certificate_name' => ['required_with:certificates', 'string', 'max:255'],
+            'certificates.*.issued_by' => ['nullable', 'string', 'max:255'],
+            'certificates.*.issue_date' => ['nullable', 'date'],
+            'certificates.*.expiry_date' => ['nullable', 'date'],
+            'certificates.*.credential_id' => ['nullable', 'string', 'max:255'],
+            'certificates.*.credential_url' => ['nullable', 'string', 'max:255'],
+            'certificates.*.certificate_file' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,webp', 'max:10240'],
+            'certificates.*.existing_file' => ['nullable', 'string', 'max:1024'],
+            'certificates.*.delete_certificate_file' => ['nullable', 'boolean'],
+            'document_type' => ['nullable', 'string', 'max:255'],
+            'document_number' => ['nullable', 'string', 'max:255'],
+            'front_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'back_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'selfie_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'address_proof' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
+            'delete_front_image' => ['nullable', 'boolean'],
+            'delete_back_image' => ['nullable', 'boolean'],
+            'delete_selfie_image' => ['nullable', 'boolean'],
+            'delete_address_proof' => ['nullable', 'boolean'],
+            'availabilities' => ['nullable', 'array'],
+            'availabilities.*.day' => ['required_with:availabilities', Rule::in(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'])],
+            'availabilities.*.start_time' => ['nullable', 'date_format:H:i'],
+            'availabilities.*.end_time' => ['nullable', 'date_format:H:i'],
+            'bank' => ['nullable', 'array'],
+            'bank.account_holder' => ['nullable', 'string', 'max:255'],
+            'bank.bank_name' => ['nullable', 'string', 'max:255'],
+            'bank.account_number' => ['nullable', 'string', 'max:255'],
+            'bank.ifsc' => ['nullable', 'string', 'max:255'],
+            'bank.swift' => ['nullable', 'string', 'max:255'],
+            'bank.iban' => ['nullable', 'string', 'max:255'],
+            'bank.branch' => ['nullable', 'string', 'max:255'],
+            'bank.paypal_email' => ['nullable', 'string', 'max:255'],
+            'bank.stripe_account' => ['nullable', 'string', 'max:255'],
+            'bank.preferred_method' => ['nullable', 'string', 'max:255'],
+            'social' => ['nullable', 'array'],
+            'social.website' => ['nullable', 'url', 'max:255'],
+            'social.linkedin' => ['nullable', 'url', 'max:255'],
+            'social.github' => ['nullable', 'url', 'max:255'],
+            'social.youtube' => ['nullable', 'url', 'max:255'],
+            'social.facebook' => ['nullable', 'url', 'max:255'],
+            'social.instagram' => ['nullable', 'url', 'max:255'],
+            'social.twitter' => ['nullable', 'url', 'max:255'],
+            'social.portfolio' => ['nullable', 'url', 'max:255'],
+            'save_as_draft' => ['nullable', 'boolean'],
+            'submit_for_approval' => ['nullable', 'boolean'],
+            'step' => ['nullable', 'integer'],
+        ];
+    }
+}
