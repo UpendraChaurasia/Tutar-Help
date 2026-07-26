@@ -18,15 +18,17 @@ class TeacherApplicationController extends Controller
 
         $applications = TeacherApplication::with(['profile.user', 'reviewer'])
             ->latest('submitted_at')
-            ->get()
-            ->map(function (TeacherApplication $application) {
-                return [
-                    'id' => $application->id,
-                    'status' => $application->status,
-                    'submitted_at' => $application->submitted_at?->toDateTimeString(),
-                    'reviewed_at' => $application->reviewed_at?->toDateTimeString(),
-                    'remarks' => $application->remarks,
-                    'teacher' => [
+            ->paginate(10)
+            ->withQueryString();
+
+        $applications->getCollection()->transform(function (TeacherApplication $application) {
+            return [
+                'id' => $application->id,
+                'status' => $application->status,
+                'submitted_at' => $application->submitted_at?->toDateTimeString(),
+                'reviewed_at' => $application->reviewed_at?->toDateTimeString(),
+                'remarks' => $application->remarks,
+                'teacher' => [
                         'id' => $application->profile?->user?->id,
                         'name' => $application->profile?->user?->name,
                         'email' => $application->profile?->user?->email,

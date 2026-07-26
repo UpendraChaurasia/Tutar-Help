@@ -32,7 +32,10 @@ class TeacherProfileController extends Controller
             'availabilities',
             'bankAccount',
             'socialLinks',
-            'applications',
+        ])->withCount([
+            'applications as pending_applications_count' => function ($query) {
+                $query->where('status', 'pending');
+            },
         ])->firstOrCreate(['user_id' => $user->id]);
 
         $lastApplication = $profile->applications()->with('reviewer')->latest('submitted_at')->first();
@@ -402,35 +405,35 @@ class TeacherProfileController extends Controller
             $score += 20;
         }
 
-        if ($profile->educations()->exists()) {
+        if ($profile->relationLoaded('educations') ? $profile->educations->isNotEmpty() : $profile->educations()->exists()) {
             $score += 10;
         }
 
-        if ($profile->experiences()->exists()) {
+        if ($profile->relationLoaded('experiences') ? $profile->experiences->isNotEmpty() : $profile->experiences()->exists()) {
             $score += 10;
         }
 
-        if ($profile->certificates()->exists()) {
+        if ($profile->relationLoaded('certificates') ? $profile->certificates->isNotEmpty() : $profile->certificates()->exists()) {
             $score += 15;
         }
 
-        if ($profile->documents()->exists()) {
+        if ($profile->relationLoaded('documents') ? $profile->documents->isNotEmpty() : $profile->documents()->exists()) {
             $score += 15;
         }
 
-        if ($profile->availabilities()->exists()) {
+        if ($profile->relationLoaded('availabilities') ? $profile->availabilities->isNotEmpty() : $profile->availabilities()->exists()) {
             $score += 5;
         }
 
-        if ($profile->bankAccount()->exists()) {
+        if ($profile->relationLoaded('bankAccount') ? $profile->bankAccount->isNotEmpty() : $profile->bankAccount()->exists()) {
             $score += 5;
         }
 
-        if ($profile->socialLinks()->exists()) {
+        if ($profile->relationLoaded('socialLinks') ? $profile->socialLinks->isNotEmpty() : $profile->socialLinks()->exists()) {
             $score += 5;
         }
 
-        if ($profile->applications()->where('status', 'pending')->exists() || $profile->status === 'approved') {
+        if (($profile->pending_applications_count ?? null) > 0 || $profile->status === 'approved') {
             $score += 5;
         }
 

@@ -38,7 +38,18 @@ const userRole = computed(() => {
 
 const adminMenuItems = [
     { key: 'dashboard', label: 'Dashboard', icon: 'home', route: 'dashboard' },
-    { key: 'users', label: 'User Management', icon: 'people', hasSubmenu: true, items: ['Admins', 'Teachers', 'Students', 'Roles & Permissions'] },
+    {
+        key: 'users',
+        label: 'User Management',
+        icon: 'people',
+        hasSubmenu: true,
+        items: [
+            { key: 'admins', label: 'Admins', route: 'admins.index' },
+            { key: 'teachers', label: 'Teachers', route: 'teachers.index' },
+            { key: 'students', label: 'Students', route: 'students.index' },
+            { key: 'roles', label: 'Roles & Permissions', route: 'roles.index' },
+        ],
+    },
     { key: 'teachers', label: 'Teacher Management', icon: 'chalkboard', hasSubmenu: true, items: [{ key: 'teacher-applications', label: 'Teacher Applications', route: 'teacher.applications.index' }, 'Approved Teachers', 'Rejected Teachers', 'Subjects / Categories'] },
     { key: 'courses', label: 'Course Management', icon: 'book', hasSubmenu: true, items: ['All Courses', 'Pending Approval', 'Published Courses', 'Draft Courses'] },
     { key: 'videos', label: 'Video Management', icon: 'film', hasSubmenu: true, items: ['Processing Queue', 'Video Library'] },
@@ -119,7 +130,26 @@ const menuItems = computed(() => {
 });
 
 const getHref = (item) => item.route ? route(item.route) : item.href || '#';
-const isActiveRoute = (item) => item.route ? route().current(item.route) : false;
+
+const isItemActive = (item) => {
+    if (item.route) {
+        return route().current(item.route);
+    }
+
+    if (item.hasSubmenu && item.items) {
+        return item.items.some((subitem) => subitem.route && route().current(subitem.route));
+    }
+
+    return false;
+};
+
+const activeParentKeys = computed(() =>
+    menuItems.value
+        .filter((item) => item.hasSubmenu && item.items?.some((subitem) => subitem.route && route().current(subitem.route)))
+        .map((item) => item.key),
+);
+
+const isSubmenuOpen = (item) => expandedMenus.value.includes(item.key) || activeParentKeys.value.includes(item.key);
 
 const getIcon = (iconName) => {
     const icons = {
@@ -159,6 +189,7 @@ const toggleMenu = (key) => {
 };
 
 onMounted(() => {
+    expandedMenus.value = activeParentKeys.value;
     isDark.value = localStorage.theme === 'dark'
         || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
     document.documentElement.classList.toggle('dark', isDark.value);
@@ -203,9 +234,9 @@ const toggleDark = () => {
 
                         <Link
                             v-else-if="item.route && !item.hasSubmenu"
-                            :href="route(item.route)"
+                            :href="getHref(item)"
                             class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all duration-200"
-                            :class="isActiveRoute(item)
+                            :class="isItemActive(item)
                                 ? 'bg-amber-50 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400'
                                 : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-50'"
                         >
@@ -217,24 +248,29 @@ const toggleDark = () => {
                             v-else-if="item.hasSubmenu"
                             type="button"
                             class="flex w-full items-center justify-between rounded-lg px-4 py-3 text-sm font-medium transition-all duration-200"
-                            :class="expandedMenus.includes(item.key)
-                                ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-50'
-                                : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-50'"
+                            :class="isItemActive(item)
+                                ? 'bg-amber-50 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400'
+                                : isSubmenuOpen(item)
+                                    ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-50'
+                                    : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-50'"
                             @click="toggleMenu(item.key)"
                         >
                             <div class="flex items-center gap-3">
                                 <div v-html="getIcon(item.icon)" class="flex-shrink-0"></div>
                                 <span>{{ item.label }}</span>
                             </div>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform duration-200" :class="expandedMenus.includes(item.key) ? 'rotate-180' : ''" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform duration-200" :class="isSubmenuOpen(item) ? 'rotate-180' : ''" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
                         </button>
 
-                        <div v-if="item.hasSubmenu && expandedMenus.includes(item.key)" class="ml-6 space-y-1 border-l border-slate-200 dark:border-slate-700">
+                        <div v-if="item.hasSubmenu && isSubmenuOpen(item)" class="ml-6 space-y-1 border-l border-slate-200 dark:border-slate-700">
                             <template v-for="subitem in item.items" :key="typeof subitem === 'string' ? subitem : subitem.key">
                                 <Link
                                     v-if="subitem.route"
-                                    :href="route(subitem.route)"
-                                    class="block rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
+                                    :href="getHref(subitem)"
+                                    class="block rounded-lg px-3 py-2 text-sm transition-colors"
+                                    :class="route().current(subitem.route)
+                                        ? 'bg-amber-50 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400'
+                                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200'"
                                 >
                                     {{ subitem.label || subitem }}
                                 </Link>
@@ -364,9 +400,9 @@ const toggleDark = () => {
 
                     <Link
                         v-else-if="item.route && !item.hasSubmenu"
-                        :href="route(item.route)"
+                        :href="getHref(item)"
                         class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all duration-200"
-                        :class="isActiveRoute(item)
+                        :class="isItemActive(item)
                             ? 'bg-amber-50 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400'
                             : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-50'"
                         @click="showingSidebar = false"
@@ -379,24 +415,29 @@ const toggleDark = () => {
                         v-else-if="item.hasSubmenu"
                         type="button"
                         class="flex w-full items-center justify-between rounded-lg px-4 py-3 text-sm font-medium transition-all duration-200"
-                        :class="expandedMenus.includes(item.key)
-                            ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-50'
-                            : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-50'"
+                        :class="isItemActive(item)
+                            ? 'bg-amber-50 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400'
+                            : isSubmenuOpen(item)
+                                ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-50'
+                                : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-50'"
                         @click="toggleMenu(item.key)"
                     >
                         <div class="flex items-center gap-3">
                             <div v-html="getIcon(item.icon)" class="flex-shrink-0"></div>
                             <span>{{ item.label }}</span>
                         </div>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform duration-200" :class="expandedMenus.includes(item.key) ? 'rotate-180' : ''" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform duration-200" :class="isSubmenuOpen(item) ? 'rotate-180' : ''" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </button>
 
-                    <div v-if="item.hasSubmenu && expandedMenus.includes(item.key)" class="ml-6 space-y-1 border-l border-slate-200 dark:border-slate-700">
+                    <div v-if="item.hasSubmenu && isSubmenuOpen(item)" class="ml-6 space-y-1 border-l border-slate-200 dark:border-slate-700">
                         <template v-for="subitem in item.items" :key="typeof subitem === 'string' ? subitem : subitem.key">
                             <Link
                                 v-if="subitem.route"
-                                :href="route(subitem.route)"
-                                class="block rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
+                                :href="getHref(subitem)"
+                                class="block rounded-lg px-3 py-2 text-sm transition-colors"
+                                :class="route().current(subitem.route)
+                                    ? 'bg-amber-50 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400'
+                                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200'"
                                 @click="showingSidebar = false"
                             >
                                 {{ subitem.label || subitem }}
