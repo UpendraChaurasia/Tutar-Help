@@ -66,7 +66,7 @@ const adminMenuItems = [
 ];
 
 const teacherMenuItems = [
-    { key: 'dashboard', label: 'Dashboard', icon: 'home', route: 'teacher.dashboard' },
+    { key: 'dashboard', label: 'Dashboard', icon: 'home', route: 'dashboard' },
     {
         key: 'profile',
         label: 'My Profile',
@@ -95,7 +95,7 @@ const teacherMenuItems = [
 ];
 
 const studentMenuItems = [
-    { key: 'dashboard', label: 'Dashboard', icon: 'home', route: 'student.dashboard' },
+    { key: 'dashboard', label: 'Dashboard', icon: 'home', route: 'dashboard' },
     { key: 'browseCourses', label: 'Browse Courses', icon: 'search' },
     { key: 'wishlist', label: 'Wishlist', icon: 'heart' },
     { key: 'cart', label: 'Cart', icon: 'shoppingCart' },

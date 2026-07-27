@@ -26,34 +26,16 @@ Route::get('/dashboard', function () {
         return redirect()->route('login');
     }
 
-    if ($user->hasRole('Superadmin')) {
-        return redirect()->route('superadmin.dashboard');
-    }
-
-    if ($user->hasRole('Admin')) {
-        return redirect()->route('admin.dashboard');
+    if ($user->hasRole('Superadmin') || $user->hasRole('Admin')) {
+        return Inertia::render('Admin/Dashboard');
     }
 
     if ($user->hasRole('Teacher')) {
-        return redirect()->route('teacher.dashboard');
+        return Inertia::render('Teacher/Dashboard');
     }
 
-    // default to student dashboard
-    return redirect()->route('student.dashboard');
+    return Inertia::render('Student/Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
-
-// Role-protected dashboards
-Route::middleware(['auth', 'role:Superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Superadmin/Dashboard');
-    })->name('dashboard');
-});
-
-Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Admin/Dashboard');
-    })->name('dashboard');
-});
 
 Route::middleware(['auth', 'role:Admin|Superadmin'])->group(function () {
     Route::get('/teacher-applications', [TeacherApplicationController::class, 'index'])->name('teacher.applications.index');
@@ -61,19 +43,9 @@ Route::middleware(['auth', 'role:Admin|Superadmin'])->group(function () {
     Route::post('/teacher-applications/{application}/review', [TeacherApplicationController::class, 'review'])->name('teacher.applications.review');
 });
 
-Route::middleware(['auth', 'role:Teacher'])->prefix('teacher')->name('teacher.')->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Teacher/Dashboard');
-    })->name('dashboard');
-
-    Route::get('/profile/edit', [TeacherProfileController::class, 'edit'])->name('profile.edit');
-    Route::post('/profile', [TeacherProfileController::class, 'update'])->name('profile.update');
-});
-
-Route::middleware(['auth', 'role:Student'])->prefix('student')->name('student.')->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Student/Dashboard');
-    })->name('dashboard');
+Route::middleware(['auth', 'role:Teacher'])->group(function () {
+    Route::get('/profile/edit', [TeacherProfileController::class, 'edit'])->name('teacher.profile.edit');
+    Route::post('/profile', [TeacherProfileController::class, 'update'])->name('teacher.profile.update');
 });
 
 Route::middleware('auth')->group(function () {
